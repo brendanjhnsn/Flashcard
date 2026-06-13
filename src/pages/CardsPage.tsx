@@ -12,7 +12,6 @@ export function CardsPage() {
   const [cards, setCards] = useState<Card[]>([])
   const [editingCard, setEditingCard] = useState<Card | null>(null)
   const [showForm, setShowForm] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     cardsApi.getCards().then(setCards).catch(console.error)
@@ -51,8 +50,6 @@ export function CardsPage() {
           <button onClick={handleLogout}>Log out</button>
         </div>
       </div>
-
-      {error && <p role="alert" style={{ color: 'red' }}>{error}</p>}
 
       {!showForm && !editingCard && (
         <button onClick={() => setShowForm(true)} style={{ marginBottom: 16 }}>
