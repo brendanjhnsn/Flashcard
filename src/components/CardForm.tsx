@@ -75,20 +75,23 @@ export function CardForm({ initial, onSave, onCancel }: Props) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
-      <h3>{initial ? 'Edit card' : 'New card'}</h3>
+      <h3 style={{ margin: '0 0 16px', color: '#fff' }}>{initial ? 'Edit card' : 'New card'}</h3>
 
       <fieldset>
         <legend>Front</legend>
         <label>Text</label>
-        <textarea {...register('front_text')} rows={3} />
+        <textarea {...register('front_text')} rows={3} placeholder="Question or prompt…" />
         {errors.front_text && <p role="alert">{errors.front_text.message}</p>}
 
         <label>Image URL</label>
-        <input type="url" {...register('front_image_url')} placeholder="https://..." />
-        <span> or </span>
+        <input type="url" {...register('front_image_url')} placeholder="https://…" />
+        <div style={{ marginTop: 6, color: '#72767d', fontSize: 12 }}>
+          — or upload —
+        </div>
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp"
+          style={{ marginTop: 6 }}
           onChange={(e) => {
             const file = e.target.files?.[0]
             if (file) handleFileUpload('front_image_url', file)
@@ -100,15 +103,18 @@ export function CardForm({ initial, onSave, onCancel }: Props) {
       <fieldset>
         <legend>Back</legend>
         <label>Text</label>
-        <textarea {...register('back_text')} rows={3} />
+        <textarea {...register('back_text')} rows={3} placeholder="Answer or definition…" />
         {errors.back_text && <p role="alert">{errors.back_text.message}</p>}
 
         <label>Image URL</label>
-        <input type="url" {...register('back_image_url')} placeholder="https://..." />
-        <span> or </span>
+        <input type="url" {...register('back_image_url')} placeholder="https://…" />
+        <div style={{ marginTop: 6, color: '#72767d', fontSize: 12 }}>
+          — or upload —
+        </div>
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp"
+          style={{ marginTop: 6 }}
           onChange={(e) => {
             const file = e.target.files?.[0]
             if (file) handleFileUpload('back_image_url', file)
@@ -117,11 +123,13 @@ export function CardForm({ initial, onSave, onCancel }: Props) {
         {errors.back_image_url && <p role="alert">{errors.back_image_url.message}</p>}
       </fieldset>
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+      <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
         <button type="submit" disabled={isSubmitting || uploading}>
-          {isSubmitting ? 'Saving…' : 'Save'}
+          {isSubmitting ? 'Saving…' : uploading ? 'Uploading…' : 'Save'}
         </button>
-        <button type="button" onClick={onCancel}>Cancel</button>
+        <button type="button" className="ghost" onClick={onCancel}>
+          Cancel
+        </button>
       </div>
     </form>
   )

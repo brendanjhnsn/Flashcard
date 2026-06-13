@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Card } from '../api/cards'
 
 interface Props {
@@ -6,27 +7,88 @@ interface Props {
   onDelete: (id: number) => void
 }
 
+const face: React.CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  backfaceVisibility: 'hidden',
+  WebkitBackfaceVisibility: 'hidden',
+  borderRadius: 8,
+  padding: '14px 16px',
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
+}
+
 export function CardItem({ card, onEdit, onDelete }: Props) {
+  const [flipped, setFlipped] = useState(false)
+
   return (
-    <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 16, marginBottom: 12 }}>
-      <div>
-        <strong>Front</strong>
-        <p>{card.front_text}</p>
-        {card.front_image_url && (
-          <img src={card.front_image_url} alt="Front" style={{ maxWidth: 200 }} />
-        )}
-      </div>
-      <hr />
-      <div>
-        <strong>Back</strong>
-        <p>{card.back_text}</p>
-        {card.back_image_url && (
-          <img src={card.back_image_url} alt="Back" style={{ maxWidth: 200 }} />
-        )}
-      </div>
-      <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-        <button onClick={() => onEdit(card)}>Edit</button>
-        <button onClick={() => onDelete(card.id)}>Delete</button>
+    <div
+      style={{ perspective: '1200px', marginBottom: 12, height: 180 }}
+      onClick={() => setFlipped((f) => !f)}
+    >
+      <div
+        style={{
+          position: 'relative',
+          height: '100%',
+          transformStyle: 'preserve-3d',
+          transition: 'transform 0.45s cubic-bezier(0.4, 0.2, 0.2, 1)',
+          transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          cursor: 'pointer',
+          borderRadius: 8,
+        }}
+      >
+        {/* ── Front face ── */}
+        <div style={{ ...face, backgroundColor: '#40444b' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#72767d', marginBottom: 8 }}>
+            Front
+          </div>
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            {card.front_text && (
+              <p style={{ color: '#dcddde', margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                {card.front_text}
+              </p>
+            )}
+            {card.front_image_url && (
+              <img src={card.front_image_url} alt="" style={{ maxWidth: '100%', maxHeight: 70, borderRadius: 4, marginTop: 4, objectFit: 'contain' }} />
+            )}
+          </div>
+          {/* Buttons — stop propagation so clicks don't flip the card */}
+          <div style={{ display: 'flex', gap: 6, marginTop: 8 }} onClick={(e) => e.stopPropagation()}>
+            <button style={{ padding: '5px 12px', fontSize: 13 }} onClick={() => onEdit(card)}>
+              Edit
+            </button>
+            <button
+              style={{ padding: '5px 12px', fontSize: 13, background: '#ed4245' }}
+              onClick={() => onDelete(card.id)}
+            >
+              Delete
+            </button>
+          </div>
+          <span style={{ position: 'absolute', bottom: 10, right: 14, fontSize: 11, color: '#4f545c', userSelect: 'none', pointerEvents: 'none' }}>
+            click to flip ▶
+          </span>
+        </div>
+
+        {/* ── Back face ── */}
+        <div style={{ ...face, backgroundColor: '#2f3136', transform: 'rotateY(180deg)' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#5865f2', marginBottom: 8 }}>
+            Back
+          </div>
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            {card.back_text && (
+              <p style={{ color: '#dcddde', margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical' }}>
+                {card.back_text}
+              </p>
+            )}
+            {card.back_image_url && (
+              <img src={card.back_image_url} alt="" style={{ maxWidth: '100%', maxHeight: 70, borderRadius: 4, marginTop: 4, objectFit: 'contain' }} />
+            )}
+          </div>
+          <span style={{ position: 'absolute', bottom: 10, right: 14, fontSize: 11, color: '#4f545c', userSelect: 'none', pointerEvents: 'none' }}>
+            ◀ click to flip
+          </span>
+        </div>
       </div>
     </div>
   )

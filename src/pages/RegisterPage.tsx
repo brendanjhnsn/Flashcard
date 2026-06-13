@@ -38,25 +38,33 @@ export function RegisterPage() {
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: '80px auto', padding: '0 16px' }}>
-      <h1>Create account</h1>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div>
-          <label htmlFor="email">Email</label>
-          <input id="email" type="email" {...register('email')} />
-          {errors.email && <p role="alert">{errors.email.message}</p>}
-        </div>
-        <div>
-          <label htmlFor="password">Password</label>
-          <input id="password" type="password" {...register('password')} />
-          {errors.password && <p role="alert">{errors.password.message}</p>}
-        </div>
-        {errors.root && <p role="alert">{errors.root.message}</p>}
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Creating account…' : 'Register'}
-        </button>
-      </form>
-      <p>Already have an account? <Link to="/login">Log in</Link></p>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#202225' }}>
+      <div style={{ width: '100%', maxWidth: 440, backgroundColor: '#36393f', borderRadius: 8, padding: '32px 40px', boxShadow: '0 2px 10px rgba(0,0,0,0.4)' }}>
+        <h1 style={{ textAlign: 'center', marginBottom: 4 }}>Create an account</h1>
+        <p style={{ textAlign: 'center', color: '#b9bbbe', marginBottom: 24, fontSize: 14 }}>
+          Start building your flashcard library.
+        </p>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div>
+            <label htmlFor="email">Email</label>
+            <input id="email" type="email" autoComplete="email" {...register('email')} />
+            {errors.email && <p role="alert">{errors.email.message}</p>}
+          </div>
+          <div>
+            <label htmlFor="password">Password</label>
+            <input id="password" type="password" autoComplete="new-password" {...register('password')} />
+            {errors.password && <p role="alert">{errors.password.message}</p>}
+          </div>
+          {errors.root && <p role="alert" style={{ marginTop: 8 }}>{errors.root.message}</p>}
+          <button type="submit" disabled={isSubmitting} style={{ width: '100%', marginTop: 20, padding: '12px' }}>
+            {isSubmitting ? 'Creating account…' : 'Continue'}
+          </button>
+        </form>
+        <p style={{ marginTop: 16, fontSize: 14, color: '#72767d' }}>
+          Already have an account?{' '}
+          <Link to="/login">Log in</Link>
+        </p>
+      </div>
     </div>
   )
 }

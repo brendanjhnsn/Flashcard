@@ -1,5 +1,7 @@
+import 'dotenv/config'
 import path from 'path'
 import fs from 'fs'
+import bcrypt from 'bcryptjs'
 import { createDb, initSchema } from './db'
 import { createApp } from './app'
 
@@ -10,6 +12,18 @@ fs.mkdirSync(uploadDir, { recursive: true })
 const dbPath = process.env.DATABASE_PATH ?? path.join(__dirname, '..', 'flashcard.db')
 const db = createDb(dbPath)
 initSchema(db)
+
+// Seed admin account from .env on first startup
+const adminEmail = process.env.ADMIN_EMAIL
+const adminPassword = process.env.ADMIN_PASSWORD
+if (adminEmail && adminPassword) {
+  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(adminEmail)
+  if (!existing) {
+    const hash = bcrypt.hashSync(adminPassword, 12)
+    db.prepare('INSERT INTO users (email, password_hash) VALUES (?, ?)').run(adminEmail, hash)
+    console.log(`Admin account created: ${adminEmail}`)
+  }
+}
 
 const app = createApp(db, uploadDir)
 const PORT = Number(process.env.PORT ?? 3001)
