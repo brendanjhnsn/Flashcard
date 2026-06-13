@@ -30,6 +30,7 @@ describe('POST /api/auth/register', () => {
       .send({ email: 'alice@example.com', password: 'password123' })
     expect(res.status).toBe(201)
     expect(res.body.token).toBeDefined()
+    expect(res.body.user.id).toBeDefined()
     expect(res.body.user.email).toBe('alice@example.com')
     expect(res.body.user.password_hash).toBeUndefined()
   })
@@ -75,7 +76,9 @@ describe('POST /api/auth/login', () => {
       .send({ email: 'alice@example.com', password: 'password123' })
     expect(res.status).toBe(200)
     expect(res.body.token).toBeDefined()
+    expect(res.body.user.id).toBeDefined()
     expect(res.body.user.email).toBe('alice@example.com')
+    expect(res.body.user.password_hash).toBeUndefined()
   })
 
   it('returns 401 for wrong password', async () => {

@@ -18,17 +18,17 @@ export function createApp(db: Db, uploadDir: string) {
   app.use('/api/cards', cardsRouter(db))
   app.use('/api/uploads', uploadsRouter(db, uploadDir))
 
-  // In production Express serves the Vite build
+  // 404 for unmatched /api routes (must come before the SPA wildcard so /api/* doesn't fall through to index.html)
+  app.use('/api', (_req, res) => {
+    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found' } })
+  })
+
+  // In production Express serves the Vite build (only reached by non-/api routes)
   if (process.env.NODE_ENV === 'production') {
     const distDir = path.join(process.cwd(), 'dist')
     app.use(express.static(distDir))
     app.get('*', (_req, res) => res.sendFile(path.join(distDir, 'index.html')))
   }
-
-  // 404 for unmatched /api routes (must come after API routers)
-  app.use('/api', (_req, res) => {
-    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found' } })
-  })
 
   // Global error handler
   app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

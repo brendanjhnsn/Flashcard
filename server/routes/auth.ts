@@ -24,15 +24,15 @@ export function authRouter(db: Db) {
 
     try {
       const user = db
-        .prepare('INSERT INTO users (email, password_hash) VALUES (?, ?) RETURNING id, email, created_at')
-        .get(email, passwordHash) as Pick<User, 'id' | 'email' | 'created_at'>
+        .prepare('INSERT INTO users (email, password_hash) VALUES (?, ?) RETURNING id, email')
+        .get(email, passwordHash) as Pick<User, 'id' | 'email'>
 
       const token = jwt.sign(
         { userId: user.id },
         process.env.JWT_SECRET ?? 'dev-secret',
         { expiresIn: '7d' }
       )
-      return res.status(201).json({ token, user })
+      return res.status(201).json({ token, user: { id: user.id, email: user.email } })
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException).message?.includes('UNIQUE constraint')) {
         return res.status(409).json({
@@ -73,7 +73,7 @@ export function authRouter(db: Db) {
     )
     return res.json({
       token,
-      user: { id: user.id, email: user.email, created_at: user.created_at },
+      user: { id: user.id, email: user.email },
     })
   })
 
