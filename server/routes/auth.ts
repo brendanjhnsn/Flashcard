@@ -8,6 +8,10 @@ import type { User } from '../types'
 // Low rounds in test env so tests run fast; 12 is secure for production
 const BCRYPT_ROUNDS = process.env.NODE_ENV === 'test' ? 2 : 12
 
+function signToken(userId: number): string {
+  return jwt.sign({ userId }, process.env.JWT_SECRET ?? 'dev-secret', { expiresIn: '7d' })
+}
+
 export function authRouter(db: Db) {
   const router = Router()
 
@@ -15,7 +19,7 @@ export function authRouter(db: Db) {
     const parse = registerSchema.safeParse(req.body)
     if (!parse.success) {
       return res.status(400).json({
-        error: { code: 'VALIDATION_ERROR', message: parse.error.message },
+        error: { code: 'VALIDATION_ERROR', message: parse.error.issues.map((i) => i.message).join('; ') },
       })
     }
 
@@ -27,11 +31,7 @@ export function authRouter(db: Db) {
         .prepare('INSERT INTO users (email, password_hash) VALUES (?, ?) RETURNING id, email')
         .get(email, passwordHash) as Pick<User, 'id' | 'email'>
 
-      const token = jwt.sign(
-        { userId: user.id },
-        process.env.JWT_SECRET ?? 'dev-secret',
-        { expiresIn: '7d' }
-      )
+      const token = signToken(user.id)
       return res.status(201).json({ token, user: { id: user.id, email: user.email } })
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException).message?.includes('UNIQUE constraint')) {
@@ -50,13 +50,13 @@ export function authRouter(db: Db) {
     const parse = loginSchema.safeParse(req.body)
     if (!parse.success) {
       return res.status(400).json({
-        error: { code: 'VALIDATION_ERROR', message: parse.error.message },
+        error: { code: 'VALIDATION_ERROR', message: parse.error.issues.map((i) => i.message).join('; ') },
       })
     }
 
     const { email, password } = parse.data
     const user = db
-      .prepare('SELECT * FROM users WHERE email = ?')
+      .prepare('SELECT id, email, password_hash, created_at FROM users WHERE email = ?')
       .get(email) as User | undefined
 
     // Use the same error for wrong email and wrong password to avoid user enumeration
@@ -66,11 +66,7 @@ export function authRouter(db: Db) {
       })
     }
 
-    const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET ?? 'dev-secret',
-      { expiresIn: '7d' }
-    )
+    const token = signToken(user.id)
     return res.json({
       token,
       user: { id: user.id, email: user.email },
