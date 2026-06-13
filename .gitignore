@@ -1,0 +1,7 @@
+node_modules/
+dist/
+dist-server/
+server/uploads/
+.superpowers/
+*.db
+.env
