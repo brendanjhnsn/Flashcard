@@ -17,6 +17,7 @@ async function register(email: string, password = 'password123') {
   const res = await request(app)
     .post('/api/auth/register')
     .send({ email, password })
+  if (res.status !== 201) throw new Error(`register failed: ${JSON.stringify(res.body)}`)
   return res.body.token as string
 }
 

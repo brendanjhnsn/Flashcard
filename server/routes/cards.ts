@@ -13,7 +13,7 @@ export function cardsRouter(db: Db) {
   router.get('/', (req, res) => {
     const cards = db
       .prepare('SELECT * FROM cards WHERE user_id = ? ORDER BY created_at DESC')
-      .all(req.userId)
+      .all(req.userId!)
     res.json(cards)
   })
 
@@ -25,7 +25,7 @@ export function cardsRouter(db: Db) {
     if (!card) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Card not found' } })
     }
-    if (card.user_id !== req.userId) {
+    if (card.user_id !== req.userId!) {
       return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Access denied' } })
     }
     return res.json(card)
@@ -47,7 +47,7 @@ export function cardsRouter(db: Db) {
         RETURNING *
       `)
       .get(
-        req.userId,
+        req.userId!,
         front_text ?? null,
         front_image_url ?? null,
         back_text ?? null,
@@ -58,6 +58,14 @@ export function cardsRouter(db: Db) {
   })
 
   router.put('/:id', (req, res) => {
+    // Validate body first so a malformed request never hits the DB
+    const parse = cardBodySchema.safeParse(req.body)
+    if (!parse.success) {
+      return res.status(400).json({
+        error: { code: 'VALIDATION_ERROR', message: parse.error.issues.map((i) => i.message).join('; ') },
+      })
+    }
+
     const card = db
       .prepare('SELECT * FROM cards WHERE id = ?')
       .get(req.params.id) as Card | undefined
@@ -65,15 +73,8 @@ export function cardsRouter(db: Db) {
     if (!card) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Card not found' } })
     }
-    if (card.user_id !== req.userId) {
+    if (card.user_id !== req.userId!) {
       return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Access denied' } })
-    }
-
-    const parse = cardBodySchema.safeParse(req.body)
-    if (!parse.success) {
-      return res.status(400).json({
-        error: { code: 'VALIDATION_ERROR', message: parse.error.issues.map((i) => i.message).join('; ') },
-      })
     }
 
     const { front_text, front_image_url, back_text, back_image_url } = parse.data
@@ -104,7 +105,7 @@ export function cardsRouter(db: Db) {
     if (!card) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Card not found' } })
     }
-    if (card.user_id !== req.userId) {
+    if (card.user_id !== req.userId!) {
       return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Access denied' } })
     }
 
