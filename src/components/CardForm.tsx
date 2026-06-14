@@ -6,12 +6,19 @@ import type { Card, CardBody } from '../api/cards'
 import { uploadImage } from '../api/uploads'
 
 // Mirror the server-side constraint: each side needs at least text or an image URL
+const imageUrlField = z
+  .string()
+  .refine((v) => v === '' || v.startsWith('/uploads/') || (() => { try { new URL(v); return true } catch { return false } })(), {
+    message: 'Enter a valid URL',
+  })
+  .optional()
+
 const schema = z
   .object({
     front_text: z.string().max(10_000).optional(),
-    front_image_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
+    front_image_url: imageUrlField,
     back_text: z.string().max(10_000).optional(),
-    back_image_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
+    back_image_url: imageUrlField,
     is_public: z.boolean().optional(),
   })
   .refine((d) => d.front_text || d.front_image_url, {
