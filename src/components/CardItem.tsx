@@ -54,7 +54,7 @@ export function CardItem({ card, onEdit, onDelete }: Props) {
             )}
           </div>
           {/* Buttons — stop propagation so clicks don't flip the card */}
-          <div style={{ display: 'flex', gap: 6, marginTop: 8 }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ display: 'flex', gap: 6, marginTop: 8, alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
             <button style={{ padding: '5px 12px', fontSize: 13 }} onClick={() => onEdit(card)}>
               Edit
             </button>
@@ -64,6 +64,11 @@ export function CardItem({ card, onEdit, onDelete }: Props) {
             >
               Delete
             </button>
+            {!!card.is_public && (
+              <span style={{ marginLeft: 4, fontSize: 11, color: '#3ba55d', fontWeight: 600 }}>
+                ● Public
+              </span>
+            )}
           </div>
           <span style={{ position: 'absolute', bottom: 10, right: 14, fontSize: 11, color: '#4f545c', userSelect: 'none', pointerEvents: 'none' }}>
             click to flip ▶

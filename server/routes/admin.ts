@@ -13,6 +13,15 @@ const createUserSchema = z.object({
   role: z.enum(['user', 'admin']).default('user'),
 })
 
+const updateUserSchema = z
+  .object({
+    role: z.enum(['user', 'admin']).optional(),
+    password: z.string().min(8).max(72).optional(),
+  })
+  .refine((d) => d.role !== undefined || d.password !== undefined, {
+    message: 'Provide at least one of role or password',
+  })
+
 export function adminRouter(db: Db) {
   const router = Router()
 
@@ -68,6 +77,36 @@ export function adminRouter(db: Db) {
     return res.status(204).send()
   })
 
+  router.patch('/users/:id', (req, res) => {
+    const targetId = Number(req.params.id)
+
+    const parse = updateUserSchema.safeParse(req.body)
+    if (!parse.success) {
+      return res.status(400).json({
+        error: { code: 'VALIDATION_ERROR', message: parse.error.issues.map((i) => i.message).join('; ') },
+      })
+    }
+
+    const existing = db.prepare('SELECT id FROM users WHERE id = ?').get(targetId) as { id: number } | undefined
+    if (!existing) {
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'User not found' } })
+    }
+
+    const { role, password } = parse.data
+    if (role !== undefined) {
+      db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, targetId)
+    }
+    if (password !== undefined) {
+      const hash = bcrypt.hashSync(password, BCRYPT_ROUNDS)
+      db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, targetId)
+    }
+
+    const updated = db
+      .prepare('SELECT id, email, role, created_at FROM users WHERE id = ?')
+      .get(targetId) as Omit<User, 'password_hash'>
+    return res.json(updated)
+  })
+
   // ── Cards (all users) ──────────────────────────────────────────────────
 
   router.get('/cards', (_req, res) => {
@@ -83,6 +122,25 @@ export function adminRouter(db: Db) {
       `)
       .all() as (Card & { user_email: string })[]
     res.json(cards)
+  })
+
+  router.patch('/cards/:id', (req, res) => {
+    const parse = z.object({ is_public: z.boolean() }).safeParse(req.body)
+    if (!parse.success) {
+      return res.status(400).json({
+        error: { code: 'VALIDATION_ERROR', message: parse.error.issues.map((i) => i.message).join('; ') },
+      })
+    }
+
+    const info = db
+      .prepare('UPDATE cards SET is_public = ? WHERE id = ?')
+      .run(parse.data.is_public ? 1 : 0, req.params.id)
+    if (info.changes === 0) {
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Card not found' } })
+    }
+
+    const card = db.prepare('SELECT * FROM cards WHERE id = ?').get(req.params.id) as Card
+    return res.json(card)
   })
 
   router.delete('/cards/:id', (req, res) => {

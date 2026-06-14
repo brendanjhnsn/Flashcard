@@ -6,6 +6,7 @@ import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { CardsPage } from './pages/CardsPage'
 import { AdminPage } from './pages/AdminPage'
+import { BrowsePage } from './pages/BrowsePage'
 
 export function App() {
   return (
@@ -30,8 +31,9 @@ export function App() {
               </AdminRoute>
             }
           />
-          {/* Redirect root to /cards */}
-          <Route path="*" element={<Navigate to="/cards" replace />} />
+          <Route path="/browse" element={<BrowsePage />} />
+          {/* Redirect root and unknown paths to /browse */}
+          <Route path="*" element={<Navigate to="/browse" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

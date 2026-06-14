@@ -23,6 +23,7 @@ export interface Card {
   front_image_url: string | null
   back_text: string | null
   back_image_url: string | null
+  is_public: number  // SQLite stores booleans as 0 / 1
   created_at: string
   updated_at: string
 }

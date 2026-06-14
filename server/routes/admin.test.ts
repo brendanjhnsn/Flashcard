@@ -145,6 +145,90 @@ describe('DELETE /api/admin/users/:id', () => {
   })
 })
 
+// ── PATCH /api/admin/users/:id ────────────────────────────────────────────
+
+describe('PATCH /api/admin/users/:id', () => {
+  it('promotes a user to admin', async () => {
+    const userId = (db.prepare("SELECT id FROM users WHERE email = 'user@example.com'").get() as { id: number }).id
+    const res = await request(app)
+      .patch(`/api/admin/users/${userId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ role: 'admin' })
+    expect(res.status).toBe(200)
+    expect(res.body.role).toBe('admin')
+    expect(res.body.password_hash).toBeUndefined()
+  })
+
+  it('demotes an admin to user', async () => {
+    const userId = (db.prepare("SELECT id FROM users WHERE email = 'user@example.com'").get() as { id: number }).id
+    const res = await request(app)
+      .patch(`/api/admin/users/${userId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ role: 'user' })
+    expect(res.status).toBe(200)
+    expect(res.body.role).toBe('user')
+  })
+
+  it('resets a user password', async () => {
+    const userId = (db.prepare("SELECT id FROM users WHERE email = 'user@example.com'").get() as { id: number }).id
+    const res = await request(app)
+      .patch(`/api/admin/users/${userId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ password: 'newpassword123' })
+    expect(res.status).toBe(200)
+    // Verify new password works by logging in
+    const login = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'user@example.com', password: 'newpassword123' })
+    expect(login.status).toBe(200)
+  })
+
+  it('can update role and password together', async () => {
+    const userId = (db.prepare("SELECT id FROM users WHERE email = 'user@example.com'").get() as { id: number }).id
+    const res = await request(app)
+      .patch(`/api/admin/users/${userId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ role: 'admin', password: 'newpassword123' })
+    expect(res.status).toBe(200)
+    expect(res.body.role).toBe('admin')
+  })
+
+  it('returns 400 when body is empty', async () => {
+    const userId = (db.prepare("SELECT id FROM users WHERE email = 'user@example.com'").get() as { id: number }).id
+    const res = await request(app)
+      .patch(`/api/admin/users/${userId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({})
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for a password shorter than 8 chars', async () => {
+    const userId = (db.prepare("SELECT id FROM users WHERE email = 'user@example.com'").get() as { id: number }).id
+    const res = await request(app)
+      .patch(`/api/admin/users/${userId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ password: 'short' })
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 404 for a non-existent user', async () => {
+    const res = await request(app)
+      .patch('/api/admin/users/99999')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ role: 'admin' })
+    expect(res.status).toBe(404)
+  })
+
+  it('returns 403 for a regular user', async () => {
+    const userId = (db.prepare("SELECT id FROM users WHERE email = 'user@example.com'").get() as { id: number }).id
+    const res = await request(app)
+      .patch(`/api/admin/users/${userId}`)
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ role: 'admin' })
+    expect(res.status).toBe(403)
+  })
+})
+
 // ── GET /api/admin/cards ──────────────────────────────────────────────────
 
 describe('GET /api/admin/cards', () => {
@@ -168,6 +252,59 @@ describe('GET /api/admin/cards', () => {
 
   it('returns 403 for a regular user', async () => {
     const res = await request(app).get('/api/admin/cards').set('Authorization', `Bearer ${userToken}`)
+    expect(res.status).toBe(403)
+  })
+})
+
+// ── PATCH /api/admin/cards/:id ────────────────────────────────────────────
+
+describe('PATCH /api/admin/cards/:id', () => {
+  it('sets a card to public', async () => {
+    const created = await request(app)
+      .post('/api/cards')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ front_text: 'Q', back_text: 'A' })
+
+    const res = await request(app)
+      .patch(`/api/admin/cards/${created.body.id}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ is_public: true })
+    expect(res.status).toBe(200)
+    expect(res.body.is_public).toBe(1)
+  })
+
+  it('sets a card to private', async () => {
+    const created = await request(app)
+      .post('/api/cards')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ front_text: 'Q', back_text: 'A', is_public: true })
+
+    const res = await request(app)
+      .patch(`/api/admin/cards/${created.body.id}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ is_public: false })
+    expect(res.status).toBe(200)
+    expect(res.body.is_public).toBe(0)
+  })
+
+  it('returns 404 for a non-existent card', async () => {
+    const res = await request(app)
+      .patch('/api/admin/cards/99999')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ is_public: true })
+    expect(res.status).toBe(404)
+  })
+
+  it('returns 403 for a regular user', async () => {
+    const created = await request(app)
+      .post('/api/cards')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ front_text: 'Q', back_text: 'A' })
+
+    const res = await request(app)
+      .patch(`/api/admin/cards/${created.body.id}`)
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ is_public: true })
     expect(res.status).toBe(403)
   })
 })

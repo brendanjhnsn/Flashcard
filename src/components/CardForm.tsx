@@ -12,6 +12,7 @@ const schema = z
     front_image_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
     back_text: z.string().max(10_000).optional(),
     back_image_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
+    is_public: z.boolean().optional(),
   })
   .refine((d) => d.front_text || d.front_image_url, {
     message: 'Front needs text or an image',
@@ -45,6 +46,7 @@ export function CardForm({ initial, onSave, onCancel }: Props) {
       front_image_url: initial?.front_image_url ?? '',
       back_text: initial?.back_text ?? '',
       back_image_url: initial?.back_image_url ?? '',
+      is_public: initial ? !!initial.is_public : false,
     },
   })
 
@@ -70,6 +72,7 @@ export function CardForm({ initial, onSave, onCancel }: Props) {
       front_image_url: data.front_image_url || null,
       back_text: data.back_text || null,
       back_image_url: data.back_image_url || null,
+      is_public: data.is_public ?? false,
     })
   }
 
@@ -123,7 +126,19 @@ export function CardForm({ initial, onSave, onCancel }: Props) {
         {errors.back_image_url && <p role="alert">{errors.back_image_url.message}</p>}
       </fieldset>
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 20, marginBottom: 4 }}>
+        <input
+          type="checkbox"
+          id="is_public"
+          {...register('is_public')}
+          style={{ width: 'auto', margin: 0, cursor: 'pointer' }}
+        />
+        <label htmlFor="is_public" style={{ margin: 0, cursor: 'pointer', fontSize: 14 }}>
+          Make this card public (visible without login)
+        </label>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
         <button type="submit" disabled={isSubmitting || uploading}>
           {isSubmitting ? 'Saving…' : uploading ? 'Uploading…' : 'Save'}
         </button>

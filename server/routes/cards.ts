@@ -39,11 +39,11 @@ export function cardsRouter(db: Db) {
       })
     }
 
-    const { front_text, front_image_url, back_text, back_image_url } = parse.data
+    const { front_text, front_image_url, back_text, back_image_url, is_public } = parse.data
     const card = db
       .prepare(`
-        INSERT INTO cards (user_id, front_text, front_image_url, back_text, back_image_url)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO cards (user_id, front_text, front_image_url, back_text, back_image_url, is_public)
+        VALUES (?, ?, ?, ?, ?, ?)
         RETURNING *
       `)
       .get(
@@ -51,7 +51,8 @@ export function cardsRouter(db: Db) {
         front_text ?? null,
         front_image_url ?? null,
         back_text ?? null,
-        back_image_url ?? null
+        back_image_url ?? null,
+        is_public ? 1 : 0
       ) as Card
 
     return res.status(201).json(card)
@@ -77,12 +78,12 @@ export function cardsRouter(db: Db) {
       return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Access denied' } })
     }
 
-    const { front_text, front_image_url, back_text, back_image_url } = parse.data
+    const { front_text, front_image_url, back_text, back_image_url, is_public } = parse.data
     const updated = db
       .prepare(`
         UPDATE cards
         SET front_text = ?, front_image_url = ?, back_text = ?, back_image_url = ?,
-            updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+            is_public = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
         WHERE id = ?
         RETURNING *
       `)
@@ -91,6 +92,7 @@ export function cardsRouter(db: Db) {
         front_image_url ?? null,
         back_text ?? null,
         back_image_url ?? null,
+        is_public ? 1 : 0,
         req.params.id
       ) as Card
 

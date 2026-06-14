@@ -26,14 +26,20 @@ export function initSchema(db: Db): void {
       front_image_url TEXT,
       back_text       TEXT,
       back_image_url  TEXT,
+      is_public       INTEGER NOT NULL DEFAULT 0,
       created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
       updated_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
     );
   `)
 
-  // Idempotent migration: add role column to existing databases that predate this column
-  const cols = (db.prepare('PRAGMA table_info(users)').all() as { name: string }[]).map((c) => c.name)
-  if (!cols.includes('role')) {
+  // Idempotent migrations for existing databases
+  const userCols = (db.prepare('PRAGMA table_info(users)').all() as { name: string }[]).map((c) => c.name)
+  if (!userCols.includes('role')) {
     db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'")
+  }
+
+  const cardCols = (db.prepare('PRAGMA table_info(cards)').all() as { name: string }[]).map((c) => c.name)
+  if (!cardCols.includes('is_public')) {
+    db.exec('ALTER TABLE cards ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0')
   }
 }

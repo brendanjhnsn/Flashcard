@@ -6,6 +6,7 @@ export const cardBodySchema = z
     front_image_url: z.string().url().nullable().optional(),
     back_text: z.string().min(1).max(10_000).nullable().optional(),
     back_image_url: z.string().url().nullable().optional(),
+    is_public: z.boolean().optional().default(false),
   })
   .refine((d) => d.front_text != null || d.front_image_url != null, {
     message: 'Front must have at least text or an image URL',
