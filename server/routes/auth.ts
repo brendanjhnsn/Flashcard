@@ -28,11 +28,11 @@ export function authRouter(db: Db) {
 
     try {
       const user = db
-        .prepare('INSERT INTO users (email, password_hash) VALUES (?, ?) RETURNING id, email')
-        .get(email, passwordHash) as Pick<User, 'id' | 'email'>
+        .prepare('INSERT INTO users (email, password_hash) VALUES (?, ?) RETURNING id, email, role')
+        .get(email, passwordHash) as Pick<User, 'id' | 'email' | 'role'>
 
       const token = signToken(user.id)
-      return res.status(201).json({ token, user: { id: user.id, email: user.email } })
+      return res.status(201).json({ token, user: { id: user.id, email: user.email, role: user.role } })
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException).message?.includes('UNIQUE constraint')) {
         return res.status(409).json({
@@ -56,7 +56,7 @@ export function authRouter(db: Db) {
 
     const { email, password } = parse.data
     const user = db
-      .prepare('SELECT id, email, password_hash, created_at FROM users WHERE email = ?')
+      .prepare('SELECT id, email, password_hash, role, created_at FROM users WHERE email = ?')
       .get(email) as User | undefined
 
     // Use the same error for wrong email and wrong password to avoid user enumeration
@@ -69,7 +69,7 @@ export function authRouter(db: Db) {
     const token = signToken(user.id)
     return res.json({
       token,
-      user: { id: user.id, email: user.email },
+      user: { id: user.id, email: user.email, role: user.role },
     })
   })
 

@@ -1,9 +1,9 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
 
-interface User {
+export interface User {
   id: number
   email: string
-  created_at: string
+  role: 'user' | 'admin'
 }
 
 interface AuthContextValue {

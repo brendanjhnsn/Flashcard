@@ -4,6 +4,7 @@ import type { Db } from './db'
 import { authRouter } from './routes/auth'
 import { cardsRouter } from './routes/cards'
 import { uploadsRouter } from './routes/uploads'
+import { adminRouter } from './routes/admin'
 
 export function createApp(db: Db, uploadDir: string) {
   const app = express()
@@ -17,6 +18,7 @@ export function createApp(db: Db, uploadDir: string) {
   app.use('/api/auth', authRouter(db))
   app.use('/api/cards', cardsRouter(db))
   app.use('/api/uploads', uploadsRouter(db, uploadDir))
+  app.use('/api/admin', adminRouter(db))
 
   // 404 for unmatched /api routes (must come before the SPA wildcard so /api/* doesn't fall through to index.html)
   app.use('/api', (_req, res) => {

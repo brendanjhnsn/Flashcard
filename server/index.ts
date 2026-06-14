@@ -17,11 +17,14 @@ initSchema(db)
 const adminEmail = process.env.ADMIN_EMAIL
 const adminPassword = process.env.ADMIN_PASSWORD
 if (adminEmail && adminPassword) {
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(adminEmail)
+  const existing = db.prepare('SELECT id, role FROM users WHERE email = ?').get(adminEmail) as { id: number; role: string } | undefined
   if (!existing) {
     const hash = bcrypt.hashSync(adminPassword, 12)
-    db.prepare('INSERT INTO users (email, password_hash) VALUES (?, ?)').run(adminEmail, hash)
+    db.prepare("INSERT INTO users (email, password_hash, role) VALUES (?, ?, 'admin')").run(adminEmail, hash)
     console.log(`Admin account created: ${adminEmail}`)
+  } else if (existing.role !== 'admin') {
+    db.prepare("UPDATE users SET role = 'admin' WHERE id = ?").run(existing.id)
+    console.log(`Admin role granted to existing account: ${adminEmail}`)
   }
 }
 

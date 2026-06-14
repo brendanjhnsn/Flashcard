@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import * as cardsApi from '../api/cards'
 import type { Card, CardBody } from '../api/cards'
@@ -51,6 +51,11 @@ export function CardsPage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ fontSize: 13, color: '#b9bbbe' }}>{user?.email}</span>
+          {user?.role === 'admin' && (
+            <Link to="/admin" style={{ fontSize: 13, color: '#5865f2', textDecoration: 'none', fontWeight: 600 }}>
+              Admin Panel
+            </Link>
+          )}
           <button className="ghost" onClick={handleLogout} style={{ padding: '6px 14px', fontSize: 13 }}>
             Log out
           </button>

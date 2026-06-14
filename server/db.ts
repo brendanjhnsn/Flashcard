@@ -15,6 +15,7 @@ export function initSchema(db: Db): void {
       id            INTEGER PRIMARY KEY AUTOINCREMENT,
       email         TEXT    UNIQUE NOT NULL,
       password_hash TEXT    NOT NULL,
+      role          TEXT    NOT NULL DEFAULT 'user',
       created_at    TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
     );
 
@@ -29,4 +30,10 @@ export function initSchema(db: Db): void {
       updated_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
     );
   `)
+
+  // Idempotent migration: add role column to existing databases that predate this column
+  const cols = (db.prepare('PRAGMA table_info(users)').all() as { name: string }[]).map((c) => c.name)
+  if (!cols.includes('role')) {
+    db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'")
+  }
 }

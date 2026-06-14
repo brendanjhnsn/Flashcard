@@ -2,7 +2,7 @@ import { apiFetch } from './client'
 
 export interface AuthResponse {
   token: string
-  user: { id: number; email: string; created_at: string }
+  user: { id: number; email: string; role: 'user' | 'admin' }
 }
 
 export function register(email: string, password: string) {
