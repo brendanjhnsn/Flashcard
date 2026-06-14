@@ -50,10 +50,9 @@ function PublicCardItem({ card }: { card: PublicCard }) {
               <img src={card.front_image_url} alt="" style={{ maxWidth: '100%', maxHeight: 70, borderRadius: 4, marginTop: 4, objectFit: 'contain' }} />
             )}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 8 }}>
-            <span style={{ fontSize: 11, color: '#72767d' }}>by {card.user_email}</span>
-            <span style={{ fontSize: 11, color: '#4f545c', userSelect: 'none' }}>click to flip ▶</span>
-          </div>
+          <span style={{ position: 'absolute', bottom: 10, right: 14, fontSize: 11, color: '#4f545c', userSelect: 'none', pointerEvents: 'none' }}>
+            click to flip ▶
+          </span>
         </div>
 
         <div style={{ ...face, backgroundColor: '#2f3136', transform: 'rotateY(180deg)' }}>
