@@ -248,6 +248,7 @@ describe('GET /api/admin/cards', () => {
     expect(res.status).toBe(200)
     expect(res.body).toHaveLength(2)
     expect(res.body[0].user_email).toBeDefined()
+    expect(res.body[0].is_public).toBeDefined()
   })
 
   it('returns 403 for a regular user', async () => {

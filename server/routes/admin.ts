@@ -115,7 +115,7 @@ export function adminRouter(db: Db) {
         SELECT c.id, c.user_id, u.email AS user_email,
                c.front_text, c.front_image_url,
                c.back_text, c.back_image_url,
-               c.created_at, c.updated_at
+               c.is_public, c.created_at, c.updated_at
         FROM cards c
         JOIN users u ON u.id = c.user_id
         ORDER BY c.created_at DESC
